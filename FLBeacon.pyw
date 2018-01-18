@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import datetime
 import time
 import subprocess
 #from configparser import ConfigParser
@@ -15,7 +16,7 @@ from sys import executable
 
 window = Tk()
 #Top = Tk ()
-
+dt = str(datetime.datetime.now())
 
 
 parser = configparser.ConfigParser()
@@ -66,7 +67,7 @@ messageout = None
 beacontimer = None
 
 window.title("FLBeacon")
-window.geometry("600x400+300+250")
+window.geometry("600x600+200+50")
 window.configure(bg="blue")
 label = Label(window,text = "Update beacon settings in the boxes below")
 label.configure(bg='yellow')
@@ -159,7 +160,7 @@ def enter():
     global full_message
     full_message=StringVar()
     full_message=("current beacon :"+callsign2Get+" "+callsign2Get+" DE "+callsign1Get+" "+callsign1Get+" "+messageGet)
-
+    clear_msg()
    
 proc = None
 def combine_funcs(*funcs):
@@ -167,20 +168,6 @@ def combine_funcs(*funcs):
         for f in funcs:
             f(*args, **kwargs)
     return combined_func 
-def turnOn():
-    global proc
-    if proc is None:
-        print('Starting Beacon')
-        proc = subprocess.Popen(["python3", "/home/pi/FLBeacon/FLBeaconout.py"])
-        label1 = Label(window,text ="Beacon is Running")
-        label1.configure(bg='green')
-        label1.place(x= 350, y=10, width=150)
-        global  label2
-        label2 = Label(window,text = full_message)
-        label2.configure(bg='green')
-        label2.place(x=50, y=90, width=550)
-
-
 def turnOff():
     global proc
     if proc is not None:
@@ -191,23 +178,83 @@ def turnOff():
         label1.configure(bg='red')
         label1.place(x= 350, y=10, width=150)
         label2.destroy()
+
+
+def turnOn():
+    global proc
+    if proc is None:
+        window.after(50000,file_chk)
+        print('Starting Beacon')
+        proc = subprocess.Popen(["python3", "/home/pi/FLBeacon/FLBeaconout.py"])
+        label1 = Label(window,text ="Beacon is Running")
+        label1.configure(bg='green')
+        label1.place(x= 350, y=10, width=150)
+        global  label2
+        label2 = Label(window,text = full_message)
+        label2.configure(bg='green')
+        label2.place(x=50, y=90, width=550)
+        file_chk()
+        
+def file_chk():
+            PATH='./FLBeaconReceived.txt'
+            if os.path.isfile(PATH):
+               print("file has been found")
+               file = open("FLBeaconReceived.txt")
+               data = file.read()
+               file.close()
+               global T
+               T = Text(window, height=6, width=70)
+               T.insert(INSERT,data)
+               T.place(x = 50, y = 365)
+               Results = Label(window,text = "Incoming Message")
+               Results.place(x = 50, y = 350)
+               turnOff() 
+               label1 = Label(window,text = "Beacon is not running")
+               label1.configure(bg='red')
+               label1.place(x= 350, y=10, width=150)
+               label2.destroy()
+               return
+            else:
+              print("there is no file")
+              window.after(50000,file_chk)
+              
+              
+          
+            
+            
+            
+
+
        
 on = Button(window, borderwidth=2, text = "Start Beacon", width=15, pady=5, command = turnOn)
 off = Button(window, borderwidth=2, text = "Stop Beacon", width=15, pady=5, command = turnOff)
 on.place(x=215,y=300)
 off.place(x=380,y=300)
-#on.grid()
-#off.grid()
+def clear_msg(): 
+        newname = 'file_'+dt+'.txt'
+        os.rename('FLBeaconReceived.txt',newname)
+        T.destroy()
+        window.update()
+        print('window updated')
+
 
 
 def stop():
-    window.destroy()
-    #Top.destroy()
+        PATH='./FLBeaconReceived.txt'
+        if os.path.isfile(PATH):
+           newname = 'file_'+dt+'.txt'
+           os.rename('FLBeaconReceived.txt',newname)
+           window.destroy()
+        else: 
+           window.destroy()
+ 
 
 b = Button(window, borderwidth=2, text="Update Beacon", width=15, pady=5, command=enter)
 b.place(x=50,y=300)
 b = Button(window, borderwidth=2, text="Exit", width=12, pady=5, command = combine_funcs(turnOff, stop))
-b.place(x=250,y=350)
+b.place(x=250,y=550)
+b = Button(window, borderwidth=2, text="Clear Message", width=16, pady=5, command = clear_msg)
+b.place(x=50,y=550)
 
 window.mainloop()
 
