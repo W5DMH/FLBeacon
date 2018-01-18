@@ -32,13 +32,11 @@ timerGet = (parser.getint('MessageConfig', 'timer'))
 #newbeaconVal = "./txbeacon.py -c 20 " + callsign2Get + " " + callsign2Get +" DE " + callsign1Get +" "+ callsign1Get +" "+ messageGet
 #print(newbeaconVal)
 messagevar = " " + callsign2Get + " " + callsign2Get +" de " + callsign1Get +" "+ callsign1Get +" "+ messageGet
-print(messagevar)
-fldigi.main.send(messagevar,timeout=45)
-
+#print(messagevar)
+#fldigi.main.send(messagevar,timeout=45)
 
 while True:
    fldigi.main.send(messagevar,timeout=45)
-   #os.system(messagevar)
    print("sleeping") 
    time.sleep(timerGet)
 
